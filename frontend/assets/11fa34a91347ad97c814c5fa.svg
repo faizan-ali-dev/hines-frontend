@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 144 144">
+  <defs>
+    <style>.cls-1{fill:none;stroke:#b70021;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.5px;}</style>
+  </defs>
+  <g>
+    <path class="cls-1" d="M31.08,62.54c4.76-19.42,21.99-33.04,42.04-33.04s36.77,13.11,41.79,32.14"></path>
+    <polyline class="cls-1" points="119.4 55.07 115.36 63.59 107.23 58.64"></polyline>
+  </g>
+  <g>
+    <path class="cls-1" d="M115.45,82.34c-4.76,19.42-21.99,33.04-42.04,33.04s-36.77-13.11-41.79-32.14"></path>
+    <polyline class="cls-1" points="27.14 89.8 31.17 81.28 39.3 86.23"></polyline>
+  </g>
+  <rect class="cls-1" x="51.18" y="50.39" width="45.16" height="45.69"></rect>
+  <g>
+    <line class="cls-1" x1="66.27" y1="83.69" x2="66.27" y2="62.3"></line>
+    <polyline class="cls-1" points="60.13 66.53 66.07 59.55 72.46 66.24"></polyline>
+    <line class="cls-1" x1="81.24" y1="59.55" x2="81.24" y2="80.94"></line>
+    <polyline class="cls-1" points="87.38 76.71 81.44 83.69 75.05 77"></polyline>
+  </g>
+</svg>

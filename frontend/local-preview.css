@@ -1,0 +1,29 @@
+/* Small additions for browsing the saved frontend, without live services. */
+.l-home-hero:not(.flickity-enabled)>.l-home-hero__cell:first-child{opacity:1!important}
+.l-home-hero:not(.flickity-enabled)>.l-home-hero__cell~.l-home-hero__cell{display:none}
+/* Keep the hero's media inside its own flow box, including direct-file mode.
+   The original 80vh cell cap could be shorter than the image's 52vw box. */
+.l-home-hero__cell{max-height:none}
+.l-home-hero__media{width:100%;padding-top:0;aspect-ratio:1980/1032;max-height:80vh}
+.l-home-hero__media--slim{aspect-ratio:1980/786}
+.l-home-hero:not(.flickity-enabled){overflow:hidden}
+.animated-cta.visible .animated-cta__heading,.animated-cta.visible .animated-cta__media,.animated-cta.visible .animated-cta__sub-text,.animated-cta.visible .btn{opacity:1!important;transform:none!important}
+/* Captured consent UI has no consent service in the local frontend. */
+.cc-window,.cc-revoke,.cmp-loader,.f-cc-pref-window,#cookiePreferencesDialog{display:none!important}
+/* Keep editorial callouts inside the saved page's responsive content width. */
+main .quote--hanging-right{margin-right:0}
+main .quote--hanging-left{margin-left:0}
+.l-content .l-image-banner{box-sizing:border-box;margin-left:0;margin-right:0;max-width:100%}
+.l-content .l-real-estate-map{box-sizing:border-box;margin-left:0;margin-right:0;max-width:100%}
+.small-list__item a,.text-stack a{overflow-wrap:anywhere}
+.property-entry a{overflow-wrap:anywhere}
+.heading-set__meta-detail .link{white-space:normal;overflow-wrap:anywhere}
+.footer__blocks{margin-left:0;margin-right:0}
+.l-content--about-history .timeline,.l-content--pride .timeline{width:calc(100vw - 1.2rem)}
+.l-content--contact .l-contact{box-sizing:border-box;margin-left:0;margin-right:0;max-width:100%}
+.l-property-map__controls{width:calc(100% - 3.5%)}
+/* Live map tiles are not part of the captured frontend. */
+.location-property-map,.l-property-map__map{background:#f3f3f3 url('assets/local-map-unavailable.svg') center/contain no-repeat}
+.image-header:has(.location-property-map) .property-map-zoom{display:none}
+@media(max-width:767px){.image-header:has(.location-property-map){min-height:220px}.location-property-map{background-size:auto 300px}}
+@media(max-width:767px){.l-image-banner .callout-block{max-width:100%;width:auto;float:none}}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 144 144">
+  <defs>
+    <style>.cls-1{fill:none;stroke:#b70021;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.5px;}</style>
+  </defs>
+  <g id="Outline-2">
+    <path class="cls-1" d="M52.6,47.3v14.6c0,4.2-3.4,7.6-7.6,7.6h-17.8c-4.2,0-7.6,3.4-7.6,7.6h0c0,4.2,3.4,7.6,7.6,7.6h46"></path>
+    <path class="cls-1" d="M83.8,67.2h26v32.6h-26c-5.5,0-10-4.5-10-10v-12.6c0-5.5,4.5-10,10-10Z"></path>
+    <line class="cls-1" x1="109.9" y1="75.9" x2="120.2" y2="75.9"></line>
+    <line class="cls-1" x1="109.9" y1="91.1" x2="120.2" y2="91.1"></line>
+    <circle class="cls-1" cx="92.3" cy="83.3" r="5.2"></circle>
+  </g>
+</svg>

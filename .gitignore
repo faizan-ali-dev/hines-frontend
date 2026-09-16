@@ -1,0 +1,15 @@
+# Local crawl inputs and generated inspection files
+capture/
+diagnostics/
+layout-qa/
+__pycache__/
+*.zip
+
+# Build and audit utilities retained only in the local workspace
+asset-index.json
+coverage-report.json
+download-report.json
+frontend-checks.json
+validation-report.json
+*.py
+*.html.original

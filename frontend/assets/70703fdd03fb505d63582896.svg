@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 144 144">
+  <defs>
+    <style>.cls-1{fill:none;stroke:#b70021;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.5px;}</style>
+  </defs>
+  <circle class="cls-1" cx="72.06" cy="33.76" r="4.01"></circle>
+  <polyline class="cls-1" points="70.81 37.57 50.64 128.25 86 96.7"></polyline>
+  <polyline class="cls-1" points="57.63 96.82 92.85 128.25 73.16 37.61"></polyline>
+  <polygon class="cls-1" points="57.63 96.82 86 96.82 62.96 72.86 80.9 72.86 57.63 96.82"></polygon>
+  <polyline class="cls-1" points="80.9 72.86 68.04 51.53 75.86 51.53 62.96 72.86"></polyline>
+  <path class="cls-1" d="M90.79,18.65c3.77,3.71,6.11,8.87,6.11,14.58,0,6.06-2.64,11.5-6.82,15.25"></path>
+  <path class="cls-1" d="M85.65,22.82c2.72,2.67,4.4,6.39,4.4,10.51,0,4.37-1.9,8.29-4.92,10.99"></path>
+  <path class="cls-1" d="M80.72,26.08c1.89,1.86,3.07,4.45,3.07,7.32,0,3.04-1.32,5.77-3.43,7.65"></path>
+  <path class="cls-1" d="M52.97,48.48c-3.77-3.71-6.11-8.87-6.11-14.58,0-6.06,2.64-11.5,6.82-15.25"></path>
+  <path class="cls-1" d="M58.11,44.31c-2.72-2.67-4.4-6.39-4.4-10.51,0-4.37,1.9-8.29,4.92-10.99"></path>
+  <path class="cls-1" d="M63.04,41.05c-1.89-1.86-3.07-4.45-3.07-7.32,0-3.04,1.32-5.77,3.43-7.65"></path>
+</svg>

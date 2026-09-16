@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 144 144">
+  <defs>
+    <style>.cls-1{fill:none;stroke:#b70021;stroke-linecap:round;stroke-linejoin:round;stroke-width:2.5px;}</style>
+  </defs>
+  <circle class="cls-1" cx="70.96" cy="102.1" r="19.17"></circle>
+  <path class="cls-1" d="M28.46,101.9h15.38c0-14.98,12.15-27.13,27.13-27.13s27.13,12.15,27.13,27.13h15.9"></path>
+  <polyline class="cls-1" points="72.15 93.72 66.52 102.1 76.14 102.1 70.53 110.43"></polyline>
+  <g>
+    <line class="cls-1" x1="28.46" y1="75.02" x2="28.46" y2="95.18"></line>
+    <line class="cls-1" x1="28.46" y1="56.67" x2="28.46" y2="66.12"></line>
+    <g>
+      <line class="cls-1" x1="19.87" y1="70.72" x2="28.38" y2="66.64"></line>
+      <line class="cls-1" x1="37.05" y1="70.72" x2="28.53" y2="66.64"></line>
+    </g>
+  </g>
+  <g>
+    <line class="cls-1" x1="113.99" y1="75.02" x2="113.99" y2="95.18"></line>
+    <line class="cls-1" x1="113.99" y1="56.67" x2="113.99" y2="66.12"></line>
+    <g>
+      <line class="cls-1" x1="105.41" y1="70.72" x2="113.92" y2="66.64"></line>
+      <line class="cls-1" x1="122.58" y1="70.72" x2="114.07" y2="66.64"></line>
+    </g>
+  </g>
+  <g>
+    <line class="cls-1" x1="54.17" y1="52.04" x2="54.17" y2="72.2"></line>
+    <line class="cls-1" x1="54.17" y1="33.7" x2="54.17" y2="43.14"></line>
+    <g>
+      <line class="cls-1" x1="45.58" y1="47.75" x2="54.09" y2="43.66"></line>
+      <line class="cls-1" x1="62.76" y1="47.75" x2="54.24" y2="43.66"></line>
+    </g>
+  </g>
+  <g>
+    <line class="cls-1" x1="88.73" y1="52.04" x2="88.73" y2="72.2"></line>
+    <line class="cls-1" x1="88.73" y1="33.7" x2="88.73" y2="43.14"></line>
+    <g>
+      <line class="cls-1" x1="80.14" y1="47.75" x2="88.65" y2="43.66"></line>
+      <line class="cls-1" x1="97.32" y1="47.75" x2="88.8" y2="43.66"></line>
+    </g>
+  </g>
+</svg>

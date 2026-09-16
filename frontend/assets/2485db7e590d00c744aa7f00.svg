@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" id="Outline" viewBox="0 0 144 144">
+  <defs>
+    <style>.cls-1{stroke-width:2.5px;}.cls-1,.cls-2{fill:none;stroke:#b70021;stroke-linecap:round;stroke-linejoin:round;}.cls-2{stroke-width:1.75px;}</style>
+  </defs>
+  <line class="cls-2" x1="85.69" y1="99.6" x2="85.69" y2="101.03"></line>
+  <line class="cls-1" x1="35.2" y1="112.39" x2="111.5" y2="112.39"></line>
+  <polyline class="cls-1" points="34.09 57.18 72.65 35.26 110.66 57.46"></polyline>
+  <line class="cls-1" x1="40.33" y1="53.57" x2="40.33" y2="111.84"></line>
+  <line class="cls-1" x1="104" y1="53.57" x2="104" y2="111.84"></line>
+  <polyline class="cls-2" points="81.53 112.46 81.53 87.28 97.97 87.28 97.97 112.67"></polyline>
+  <line class="cls-2" x1="37" y1="80.42" x2="107.33" y2="80.42"></line>
+  <line class="cls-2" x1="37" y1="73.82" x2="107.33" y2="73.82"></line>
+  <line class="cls-2" x1="46.35" y1="70.77" x2="46.35" y2="79.38"></line>
+  <line class="cls-2" x1="52.87" y1="70.77" x2="52.87" y2="79.38"></line>
+  <line class="cls-2" x1="59.53" y1="70.77" x2="59.53" y2="79.38"></line>
+  <line class="cls-2" x1="66.05" y1="70.77" x2="66.05" y2="79.38"></line>
+  <line class="cls-2" x1="72.15" y1="70.77" x2="72.15" y2="79.38"></line>
+  <line class="cls-2" x1="78.67" y1="70.77" x2="78.67" y2="79.38"></line>
+  <line class="cls-2" x1="85.33" y1="70.77" x2="85.33" y2="79.38"></line>
+  <line class="cls-2" x1="91.85" y1="70.77" x2="91.85" y2="79.38"></line>
+  <line class="cls-2" x1="98.1" y1="70.77" x2="98.1" y2="79.38"></line>
+  <rect class="cls-2" x="46.43" y="86.83" width="29.13" height="18.17"></rect>
+  <polyline class="cls-2" points="52.81 63.84 52.81 56.9 66.13 56.9 66.13 63.84"></polyline>
+  <polyline class="cls-2" points="78.62 63.84 78.62 56.9 91.93 56.9 91.93 63.84"></polyline>
+</svg>
