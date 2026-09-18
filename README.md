@@ -10,6 +10,28 @@ This folder contains a local testing copy of public pages from https://www.hines
 
 Server-dependent services still require the original backend.
 
+## Django backend
+
+The local Django backend is in `backend/`. It provides session-based client authentication for the new signup, login, and dashboard experience.
+
+```powershell
+cd backend
+python -m pip install -r ../requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+The authentication API is available at `http://127.0.0.1:8000/api/auth/`:
+
+- `GET csrf/` sets the CSRF cookie for browser requests.
+- `POST signup/` accepts `full_name`, `email`, `referral_code`, and `password`.
+- `POST login/` accepts `username` (the signup email) and `password`.
+- `POST logout/` ends the active session.
+- `GET profile/` returns the signed-in user's profile.
+- `GET dashboard/` returns protected dashboard data.
+
+Run the backend test suite with `python manage.py test accounts` from `backend/`.
+
 ## Contents
 
 The extracted website is in `frontend/`.
