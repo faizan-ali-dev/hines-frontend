@@ -1,0 +1,30 @@
+:root {
+  --hines-red: #c6002b;
+  --hines-navy: #172334;
+}
+
+#header {
+  background: var(--hines-navy);
+}
+
+#header a:link, #header a:visited, #branding h1 {
+  color: #fff;
+}
+
+div.breadcrumbs {
+  background: var(--hines-red);
+}
+
+#changelist table thead th {
+  background: #edf1f5;
+  color: var(--hines-navy);
+  font-weight: 700;
+}
+
+#changelist table input[type="number"] {
+  min-width: 4rem;
+}
+
+.module h2, .module caption, .inline-group h2 {
+  background: var(--hines-navy);
+}

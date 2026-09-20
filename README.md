@@ -30,6 +30,15 @@ The authentication API is available at `http://127.0.0.1:8000/api/auth/`:
 - `GET profile/` returns the signed-in user's profile.
 - `GET dashboard/` returns protected dashboard data.
 
+### Assignment rules
+
+- Every signup receives 15 Demo lots and 35 Client lots.
+- Staff set the completed lot count in the customized Django admin employee table. The backend marks only the first matching lots complete and recalculates earnings from the stored per-lot amounts.
+- The Client dashboard remains locked until staff activate the account after all 15 Demo lots are complete. Activation stores the final Demo earnings once, then carries that amount into Client totals.
+- Detailed lot configuration and a read-only progress audit are available in Django admin. The browser never controls completion or financial calculations.
+
+For production, set `DJANGO_DEBUG=false`, `DJANGO_SECRET_KEY` to a long private value, and `DJANGO_ALLOWED_HOSTS` to the deployed hostname. The API uses Django sessions, CSRF protection, secure production cookies, and login-attempt throttling.
+
 Run the backend test suite with `python manage.py test accounts` from `backend/`.
 
 ## Contents
