@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import Count
 
 from .models import AssignmentLot, ProgressChange, TaskDefinition
 from .services import assign_task_to_eligible_users, sync_progress_from_lots
@@ -12,13 +13,21 @@ class TaskDefinitionAdmin(admin.ModelAdmin):
     list_filter = ("assignment_type",)
     search_fields = ("task_name", "task_description")
     ordering = ("assignment_type", "lot_number")
+    fieldsets = (
+        ("Task placement", {"description": "A new task is assigned automatically to every user in the selected stage.", "fields": ("assignment_type", "lot_number")}),
+        ("Task details", {"fields": ("task_name", "task_description", "task_link")}),
+        ("Payment", {"description": "The earning is displayed for a user only after this task is marked complete.", "fields": ("task_value", "employee_earning")}),
+    )
 
     def get_readonly_fields(self, request, obj=None):
         return ("assignment_type", "lot_number") if obj else ()
 
     @admin.display(description="Assigned users")
     def assigned_users(self, obj):
-        return obj.assignments.count()
+        return obj.assigned_user_count
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(assigned_user_count=Count("assignments"))
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -59,8 +68,16 @@ class AssignmentLotAdmin(admin.ModelAdmin):
     list_filter = ("assignment_type", "is_completed")
     search_fields = ("employee__email", "employee__first_name", "employee__last_name", "task_name")
     ordering = ("employee__email", "assignment_type", "lot_number")
+    list_editable = ("is_completed",)
+    list_per_page = 50
     readonly_fields = ("employee", "task_definition", "assignment_type", "lot_number", "task_name", "task_description", "task_value", "employee_earning", "task_link")
-    fields = readonly_fields + ("is_completed",)
+    fieldsets = (
+        ("Assignment", {"fields": readonly_fields}),
+        ("Completion", {"description": "Mark complete only after the employee has completed the task. This updates their earnings and progress.", "fields": ("is_completed",)}),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("employee", "task_definition")
 
     def has_add_permission(self, request):
         return False
@@ -79,6 +96,9 @@ class ProgressChangeAdmin(admin.ModelAdmin):
     list_filter = ("assignment_type", "created_at")
     search_fields = ("employee__email", "changed_by__email")
     readonly_fields = ("employee", "assignment_type", "previous_progress", "new_progress", "changed_by", "created_at")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("employee", "changed_by")
 
     def has_add_permission(self, request):
         return False

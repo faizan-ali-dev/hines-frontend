@@ -1,0 +1,25 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/control_panel.css' %}">
+{% endblock %}
+
+{% block title %}{{ title }} | Hines Operations{% endblock %}
+
+{% block branding %}
+  <div id="site-name" class="hines-brand">
+    <a href="{% url 'admin:index' %}">Hines</a>
+    <span>Operations Console</span>
+  </div>
+{% endblock %}
+
+{% block nav-global %}
+  <nav class="hines-admin-nav" aria-label="Operations navigation">
+    <a href="{% url 'admin:index' %}">Overview</a>
+    <a href="{% url 'admin:accounts_clientuser_changelist' %}">Users</a>
+    <a href="{% url 'admin:assignments_taskdefinition_changelist' %}">Task catalogue</a>
+    <a href="{% url 'admin:assignments_assignmentlot_changelist' %}">Completion tracking</a>
+  </nav>
+{% endblock %}

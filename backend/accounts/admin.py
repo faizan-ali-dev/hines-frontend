@@ -1,5 +1,9 @@
+from decimal import Decimal
+
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.db.models import DecimalField, Q, Sum, Value
+from django.db.models.functions import Coalesce
 
 from assignments.models import TaskDefinition
 from assignments.services import (
@@ -45,10 +49,17 @@ class AssignmentStatusFilter(admin.SimpleListFilter):
 @admin.register(ClientUser)
 class ClientUserAdmin(UserAdmin):
     fieldsets = (
-        ("Employee identity", {"fields": ("username", "first_name", "last_name", "email", "referral_code", "is_active")}),
+        (
+            "Employee identity",
+            {
+                "description": "Contact details used for sign-in. Referral code is optional.",
+                "fields": ("username", "first_name", "last_name", "email", "referral_code", "is_active"),
+            },
+        ),
         (
             "Assignment control",
             {
+                "description": "Set the user stage and task progress. Completion and earnings recalculate when you save.",
                 "fields": (
                     ("assignment_status", "demo_progress", "client_progress"),
                     "client_activated_at",
@@ -60,7 +71,9 @@ class ClientUserAdmin(UserAdmin):
         ("Permissions", {"fields": ("is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
-    add_fieldsets = UserAdmin.add_fieldsets + (("Employee identity", {"fields": ("email", "first_name", "last_name", "referral_code")}),)
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("Employee identity", {"description": "Referral code is optional.", "fields": ("email", "first_name", "last_name", "referral_code")}),
+    )
     readonly_fields = (
         "client_activated_at",
         "carried_demo_earnings",
@@ -93,7 +106,17 @@ class ClientUserAdmin(UserAdmin):
         css = {"all": ("admin/control_panel.css",)}
 
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related("assignment_lots")
+        zero_earnings = Value(Decimal("0.00"), output_field=DecimalField(max_digits=12, decimal_places=2))
+        return super().get_queryset(request).annotate(
+            admin_demo_earnings=Coalesce(
+                Sum("assignment_lots__employee_earning", filter=Q(assignment_lots__assignment_type="demo", assignment_lots__is_completed=True)),
+                zero_earnings,
+            ),
+            admin_client_earnings=Coalesce(
+                Sum("assignment_lots__employee_earning", filter=Q(assignment_lots__assignment_type="client", assignment_lots__is_completed=True)),
+                zero_earnings,
+            ),
+        )
 
     @admin.display(description="Name", ordering="first_name")
     def employee_name(self, obj):
@@ -104,16 +127,16 @@ class ClientUserAdmin(UserAdmin):
 
     @admin.display(description="Demo earnings")
     def demo_earnings(self, obj):
-        return f"${self._summary(obj, TaskDefinition.AssignmentType.DEMO)['current_earnings']:.2f}"
+        return f"${obj.admin_demo_earnings:.2f}"
 
     @admin.display(description="Client earnings")
     def client_earnings(self, obj):
-        return f"${self._summary(obj, TaskDefinition.AssignmentType.CLIENT)['current_earnings']:.2f}"
+        return f"${obj.admin_client_earnings:.2f}"
 
     @admin.display(description="Total earnings")
     def total_earnings(self, obj):
-        demo = self._summary(obj, TaskDefinition.AssignmentType.DEMO)["current_earnings"]
-        client = self._summary(obj, TaskDefinition.AssignmentType.CLIENT)["current_earnings"]
+        demo = obj.admin_demo_earnings
+        client = obj.admin_client_earnings
         carried = obj.carried_demo_earnings if obj.client_is_active else demo
         return f"${carried + client:.2f}"
 
