@@ -1,0 +1,7 @@
+{% extends "client/base.html" %}
+{% block title %}Client Access Pending | Hines{% endblock %}
+{% block body_class %}portal-dashboard{% endblock %}
+{% block content %}
+{% include "client/_dashboard_header.html" %}
+<main class="portal-dashboard-main"><section class="portal-completion portal-pending"><p class="portal-eyebrow">Client account</p><h1>Client access is pending.</h1><p>Complete all 15 Demo lots, then an administrator can activate your Client Assignment.</p><a class="portal-primary-button portal-inline-button" href="{% url 'accounts:demo-dashboard' %}">View Demo Assignment</a></section></main>
+{% endblock %}

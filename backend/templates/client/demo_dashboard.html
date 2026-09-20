@@ -1,0 +1,27 @@
+{% extends "client/base.html" %}
+{% block title %}Demo Dashboard | Hines{% endblock %}
+{% block body_class %}portal-dashboard{% endblock %}
+{% block content %}
+{% include "client/_dashboard_header.html" %}
+<main class="portal-dashboard-main">
+  <section class="portal-welcome">
+    <div><p class="portal-eyebrow">Demo account</p><h1>Welcome, {{ request.user.first_name }}.</h1><h2>Your Demo Assignment</h2><p>Complete your assigned lots to complete your demo assignment.</p></div>
+    <span class="portal-badge">Demo account</span>
+  </section>
+  <section class="portal-summary-grid" aria-label="Demo assignment summary">
+    <article><span>Total earnings</span><strong>${{ stats.current_earnings|floatformat:2 }}</strong></article>
+    <article><span>Total lots</span><strong>{{ stats.total_lots }}</strong></article>
+    <article><span>Completed</span><strong>{{ stats.completed }}</strong></article>
+    <article><span>Remaining</span><strong>{{ stats.remaining }}</strong></article>
+  </section>
+  <section class="portal-progress-section">
+    <div class="portal-section-heading"><div><p class="portal-eyebrow">Demo progress</p><h2>{{ stats.completed }} of {{ stats.total_lots }} Lots Completed</h2></div><strong>{{ stats.percentage }}%</strong></div>
+    <div class="portal-progress-track" aria-label="{{ stats.percentage }} percent complete"><span style="width: {{ stats.percentage }}%"></span></div>
+    <dl class="portal-earnings-list"><div><dt>Current Earnings</dt><dd>${{ stats.current_earnings|floatformat:2 }}</dd></div><div><dt>Potential Demo Earnings</dt><dd>${{ stats.potential_earnings|floatformat:2 }}</dd></div><div><dt>Remaining Potential</dt><dd>${{ stats.remaining_potential|floatformat:2 }}</dd></div></dl>
+  </section>
+  {% if stats.is_complete %}
+  <section class="portal-completion"><strong>✓ Demo Assignment Completed</strong><p>15 / 15 lots completed. Your client assignment is {% if client_access_available %}available{% else %}awaiting administrator activation{% endif %}.</p>{% if client_access_available %}<a class="portal-primary-button portal-inline-button" href="{% url 'accounts:client-dashboard' %}">Continue with Client →</a>{% endif %}</section>
+  {% endif %}
+  <section class="portal-table-section"><h2>Demo Lots</h2><div class="portal-table-wrap"><table><thead><tr><th>Lot</th><th>Task</th><th>Value</th><th>Your Earning</th><th>Task Link</th><th>Status</th></tr></thead><tbody>{% for lot in stats.lots %}<tr><td>#{{ lot.lot_number|stringformat:"03d" }}</td><td>{{ lot.task_name }}</td><td>${{ lot.task_value|floatformat:2 }}</td><td>${{ lot.employee_earning|floatformat:2 }}</td><td><a href="{{ lot.task_link }}" target="_blank" rel="noopener noreferrer">Open ↗</a></td><td class="portal-status {% if lot.is_completed %}is-complete{% endif %}">{% if lot.is_completed %}✓{% else %}—{% endif %}</td></tr>{% endfor %}</tbody></table></div></section>
+</main>
+{% endblock %}

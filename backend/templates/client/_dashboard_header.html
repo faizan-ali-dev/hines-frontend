@@ -1,0 +1,15 @@
+<header class="portal-dashboard-header">
+  <a class="portal-logo" href="/"><img src="/assets/ab4f449639117ccdc01dd29c.svg" alt="Hines"></a>
+  <nav class="portal-dashboard-nav" aria-label="Account navigation">
+    <a href="{{ support_url }}">Customer Support</a>
+    <div class="portal-profile" data-profile-menu>
+      <button type="button" class="portal-profile-button" data-profile-toggle aria-label="Open profile" aria-expanded="false">{{ profile_initials }}</button>
+      <section class="portal-profile-card" data-profile-card aria-label="Profile">
+        <h2>{{ request.user.full_name }}</h2>
+        <p><span>Email</span>{{ request.user.email }}</p>
+        <p><span>Referral code</span>{{ request.user.referral_code }}</p>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="portal-text-button" type="submit">Sign out</button></form>
+      </section>
+    </div>
+  </nav>
+</header>
