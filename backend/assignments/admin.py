@@ -13,6 +13,17 @@ class AssignmentLotAdmin(admin.ModelAdmin):
     ordering = ("employee__email", "assignment_type", "lot_number")
     readonly_fields = ("is_completed",)
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return self.readonly_fields + ("employee", "assignment_type", "lot_number")
+        return self.readonly_fields
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def save_model(self, request, obj, form, change):
         if obj.assignment_type == AssignmentLot.AssignmentType.DEMO:
             obj.employee_earning = (obj.task_value * Decimal("0.10")).quantize(Decimal("0.01"))

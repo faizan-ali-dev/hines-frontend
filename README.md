@@ -12,7 +12,7 @@ Server-dependent services still require the original backend.
 
 ## Django backend
 
-The local Django backend is in `backend/`. It provides session-based client authentication for the new signup, login, and dashboard experience.
+The local Django application is in `backend/`. It serves the captured public frontend and provides session-based client authentication, employee dashboards, and the customized Django admin control panel.
 
 ```powershell
 cd backend
@@ -21,14 +21,13 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-The authentication API is available at `http://127.0.0.1:8000/api/auth/`:
+Open `http://127.0.0.1:8000/` to use the public site and browser pages built with plain HTML, CSS, JavaScript, and Django templates:
 
-- `GET csrf/` sets the CSRF cookie for browser requests.
-- `POST signup/` accepts `full_name`, `email`, `referral_code`, and `password`.
-- `POST login/` accepts `username` (the signup email) and `password`.
-- `POST logout/` ends the active session.
-- `GET profile/` returns the signed-in user's profile.
-- `GET dashboard/` returns protected dashboard data.
+- `/sign-up/` creates an employee account.
+- `/client-login/` signs in with the registration email and password.
+- `/dashboard/demo/` displays the 15-lot Demo Assignment.
+- `/dashboard/client/` displays the 35-lot Client Assignment after staff activation.
+- `/admin/` opens the staff control panel.
 
 ### Assignment rules
 
@@ -37,7 +36,7 @@ The authentication API is available at `http://127.0.0.1:8000/api/auth/`:
 - The Client dashboard remains locked until staff activate the account after all 15 Demo lots are complete. Activation stores the final Demo earnings once, then carries that amount into Client totals.
 - Detailed lot configuration and a read-only progress audit are available in Django admin. The browser never controls completion or financial calculations.
 
-For production, set `DJANGO_DEBUG=false`, `DJANGO_SECRET_KEY` to a long private value, and `DJANGO_ALLOWED_HOSTS` to the deployed hostname. The API uses Django sessions, CSRF protection, secure production cookies, and login-attempt throttling.
+For production, set `DJANGO_DEBUG=false`, `DJANGO_SECRET_KEY` to a long private value, and `DJANGO_ALLOWED_HOSTS` to the deployed hostname. The application uses Django sessions, CSRF protection, secure production cookies, and login-attempt throttling.
 
 Run the backend test suite with `python manage.py test accounts` from `backend/`.
 

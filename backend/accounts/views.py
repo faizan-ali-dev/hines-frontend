@@ -1,48 +1,24 @@
-import json
 from hashlib import sha256
-from functools import wraps
+import mimetypes
 
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db import transaction
-from django.http import JsonResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_GET, require_POST
+from django.http import FileResponse, Http404, HttpResponseNotAllowed
+from django.shortcuts import redirect, render
+from django.views.decorators.http import require_http_methods, require_POST
 
-from .models import ClientUser
 from assignments.models import AssignmentLot
 from assignments.services import assignment_summary, create_default_lots
 
+from .forms import ClientLoginForm, ClientSignupForm
+from .models import ClientUser
+
 MAX_LOGIN_ATTEMPTS = 5
 LOGIN_LOCKOUT_SECONDS = 15 * 60
-
-
-def _json_body(request):
-    try:
-        payload = json.loads(request.body.decode("utf-8") or "{}")
-    except (UnicodeDecodeError, json.JSONDecodeError):
-        return None, JsonResponse({"detail": "Request body must be valid JSON."}, status=400)
-
-    if not isinstance(payload, dict):
-        return None, JsonResponse({"detail": "Request body must be a JSON object."}, status=400)
-    return payload, None
-
-
-def _user_data(user):
-    return {
-        "id": user.pk,
-        "full_name": user.full_name,
-        "email": user.email,
-        "username": user.username,
-        "referral_code": user.referral_code,
-        "client_is_active": user.client_is_active,
-    }
-
-
-def _money(amount):
-    return f"{amount:.2f}"
 
 
 def _login_attempt_cache_key(request, username):
@@ -51,188 +27,127 @@ def _login_attempt_cache_key(request, username):
     return f"client-login-attempts:{sha256(raw_key).hexdigest()}"
 
 
-def _lot_data(lot):
+def _initials(user):
+    parts = user.full_name.split()
+    return "".join(part[:1] for part in parts[:2]).upper() or user.username[:2].upper()
+
+
+def _dashboard_context(request, assignment_type):
+    stats = assignment_summary(request.user, assignment_type)
     return {
-        "lot_number": lot.lot_number,
-        "task_name": lot.task_name,
-        "task_description": lot.task_description,
-        "task_value": _money(lot.task_value),
-        "employee_earning": _money(lot.employee_earning),
-        "task_link": lot.task_link,
-        "is_completed": lot.is_completed,
+        "stats": stats,
+        "profile_initials": _initials(request.user),
+        "support_url": "/contact/",
     }
 
 
-def _assignment_data(summary):
-    return {
-        "total_lots": summary["total_lots"],
-        "completed": summary["completed"],
-        "remaining": summary["remaining"],
-        "percentage": summary["percentage"],
-        "current_earnings": _money(summary["current_earnings"]),
-        "potential_earnings": _money(summary["potential_earnings"]),
-        "remaining_potential": _money(summary["remaining_potential"]),
-        "is_complete": summary["completed"] == summary["total_lots"],
-        "lots": [_lot_data(lot) for lot in summary["lots"]],
-    }
+@require_http_methods(["GET", "POST"])
+def sign_up(request):
+    if request.user.is_authenticated:
+        return redirect("accounts:demo-dashboard")
+
+    form = ClientSignupForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        full_name = form.cleaned_data["full_name"].strip()
+        first_name, *remaining_name = full_name.split(maxsplit=1)
+        with transaction.atomic():
+            user = ClientUser.objects.create_user(
+                username=form.cleaned_data["email"],
+                email=form.cleaned_data["email"],
+                password=form.cleaned_data["password"],
+                first_name=first_name,
+                last_name=remaining_name[0] if remaining_name else "",
+                referral_code=form.cleaned_data["referral_code"].strip(),
+            )
+            create_default_lots(user)
+        login(request, user)
+        return redirect("accounts:demo-dashboard")
+    return render(request, "client/sign_up.html", {"form": form})
 
 
-def api_login_required(view):
-    @wraps(view)
-    def wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return JsonResponse({"detail": "Authentication is required."}, status=401)
-        return view(request, *args, **kwargs)
-
-    return wrapped
-
-
-@require_GET
-@ensure_csrf_cookie
-def csrf(request):
-    """Sets the CSRF cookie needed before browser-based JSON POST requests."""
-    return JsonResponse({"detail": "CSRF cookie set."})
-
-
-@require_POST
-def signup(request):
-    payload, error = _json_body(request)
-    if error:
-        return error
-
-    full_name = str(payload.get("full_name", "")).strip()
-    email = str(payload.get("email", "")).strip().lower()
-    referral_code = str(payload.get("referral_code", "")).strip()
-    password = str(payload.get("password", ""))
-
-    missing = [
-        field
-        for field, value in {
-            "full_name": full_name,
-            "email": email,
-            "referral_code": referral_code,
-            "password": password,
-        }.items()
-        if not value
-    ]
-    if missing:
-        return JsonResponse({"detail": "All signup fields are required.", "errors": missing}, status=400)
-
-    if ClientUser.objects.filter(email__iexact=email).exists():
-        return JsonResponse({"detail": "An account with this email already exists."}, status=409)
-
-    first_name, *remaining_name = full_name.split(maxsplit=1)
-    last_name = remaining_name[0] if remaining_name else ""
-    candidate = ClientUser(
-        username=email,
-        email=email,
-        first_name=first_name,
-        last_name=last_name,
-        referral_code=referral_code,
-    )
-    try:
-        validate_password(password, candidate)
-    except ValidationError as validation_error:
-        return JsonResponse({"detail": "Password does not meet requirements.", "errors": validation_error.messages}, status=400)
-
-    with transaction.atomic():
-        user = ClientUser.objects.create_user(
-            username=email,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-            referral_code=referral_code,
-        )
-        create_default_lots(user)
-    login(request, user)
-    return JsonResponse({"user": _user_data(user)}, status=201)
-
-
-@require_POST
+@require_http_methods(["GET", "POST"])
 def client_login(request):
-    payload, error = _json_body(request)
-    if error:
-        return error
+    if request.user.is_authenticated:
+        return redirect("accounts:demo-dashboard")
 
-    username = str(payload.get("username", "")).strip()
-    password = str(payload.get("password", ""))
-    if not username or not password:
-        return JsonResponse({"detail": "Username and password are required."}, status=400)
-
-    attempt_key = _login_attempt_cache_key(request, username)
-    if cache.get(attempt_key, 0) >= MAX_LOGIN_ATTEMPTS:
-        return JsonResponse(
-            {"detail": "Too many unsuccessful login attempts. Try again in 15 minutes."},
-            status=429,
-        )
-
-    matching_email_user = ClientUser.objects.filter(email__iexact=username).first()
-    username_to_authenticate = matching_email_user.username if matching_email_user else username
-    user = authenticate(request, username=username_to_authenticate, password=password)
-    if user is None:
-        cache.add(attempt_key, 0, timeout=LOGIN_LOCKOUT_SECONDS)
-        cache.incr(attempt_key)
-        return JsonResponse({"detail": "Invalid username or password."}, status=401)
-
-    cache.delete(attempt_key)
-    login(request, user)
-    return JsonResponse({"user": _user_data(user)})
+    form = ClientLoginForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        username = form.cleaned_data["username"].strip()
+        attempt_key = _login_attempt_cache_key(request, username)
+        if cache.get(attempt_key, 0) >= MAX_LOGIN_ATTEMPTS:
+            form.add_error(None, "Too many unsuccessful login attempts. Try again in 15 minutes.")
+        else:
+            matching_email_user = ClientUser.objects.filter(email__iexact=username).first()
+            username_to_authenticate = matching_email_user.username if matching_email_user else username
+            user = authenticate(request, username=username_to_authenticate, password=form.cleaned_data["password"])
+            if user is None:
+                cache.add(attempt_key, 0, timeout=LOGIN_LOCKOUT_SECONDS)
+                cache.incr(attempt_key)
+                form.add_error(None, "The username or password is incorrect.")
+            else:
+                cache.delete(attempt_key)
+                login(request, user)
+                return redirect("accounts:demo-dashboard")
+    return render(request, "client/login.html", {"form": form})
 
 
 @require_POST
-@api_login_required
 def client_logout(request):
     logout(request)
-    return JsonResponse({"detail": "Signed out."})
+    messages.success(request, "You have been signed out.")
+    return redirect("accounts:login")
 
 
-@require_GET
-@api_login_required
-def profile(request):
-    return JsonResponse({"user": _user_data(request.user)})
-
-
-@require_GET
-@api_login_required
+@login_required(login_url="accounts:login")
 def dashboard(request):
-    return demo_dashboard(request)
+    return redirect("accounts:demo-dashboard")
 
 
-@require_GET
-@api_login_required
+@login_required(login_url="accounts:login")
 def demo_dashboard(request):
-    summary = assignment_summary(request.user, AssignmentLot.AssignmentType.DEMO)
-    return JsonResponse(
-        {
-            "user": _user_data(request.user),
-            "account_type": "demo",
-            "assignment": _assignment_data(summary),
-            "client_access_available": request.user.client_is_active,
-            "message": "Welcome to your demo assignment.",
-        }
-    )
+    context = _dashboard_context(request, AssignmentLot.AssignmentType.DEMO)
+    context["client_access_available"] = request.user.client_is_active
+    return render(request, "client/demo_dashboard.html", context)
 
 
-@require_GET
-@api_login_required
+@login_required(login_url="accounts:login")
 def client_dashboard(request):
     if not request.user.client_is_active:
-        return JsonResponse({"detail": "Your client assignment has not been activated."}, status=403)
+        return render(request, "client/client_access_pending.html", _dashboard_context(request, AssignmentLot.AssignmentType.DEMO), status=403)
 
-    summary = assignment_summary(request.user, AssignmentLot.AssignmentType.CLIENT)
-    carried_demo_earnings = request.user.carried_demo_earnings
-    client_earnings = summary["current_earnings"]
-    return JsonResponse(
+    context = _dashboard_context(request, AssignmentLot.AssignmentType.CLIENT)
+    context.update(
         {
-            "user": _user_data(request.user),
-            "account_type": "client",
-            "assignment": _assignment_data(summary),
-            "demo_earnings_carried_forward": _money(carried_demo_earnings),
-            "client_earnings": _money(client_earnings),
-            "total_earnings": _money(carried_demo_earnings + client_earnings),
-            "message": "Welcome to your client assignment.",
+            "carried_demo_earnings": request.user.carried_demo_earnings,
+            "client_earnings": context["stats"]["current_earnings"],
+            "total_earnings": request.user.carried_demo_earnings + context["stats"]["current_earnings"],
         }
     )
+    return render(request, "client/client_dashboard.html", context)
 
-# Create your views here.
+
+def public_frontend(request, frontend_path=""):
+    """Serves the captured public HTML only after application routes are resolved."""
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+
+    requested_path = frontend_path or "index.html"
+    legacy_account_pages = {
+        "signup/index.html": "accounts:signup",
+        "client-login/index.html": "accounts:login",
+        "dashboard/index.html": "accounts:demo-dashboard",
+    }
+    if requested_path in legacy_account_pages:
+        return redirect(legacy_account_pages[requested_path])
+    if requested_path.endswith("/"):
+        requested_path = f"{requested_path}index.html"
+
+    root = settings.PUBLIC_FRONTEND_DIR.resolve()
+    candidate = (root / requested_path).resolve()
+    if root not in candidate.parents and candidate != root:
+        raise Http404("Page not found.")
+    if not candidate.is_file():
+        raise Http404("Page not found.")
+
+    content_type, _ = mimetypes.guess_type(candidate.name)
+    return FileResponse(candidate.open("rb"), content_type=content_type)
