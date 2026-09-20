@@ -11,7 +11,7 @@ from django.http import FileResponse, Http404, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
-from assignments.models import AssignmentLot
+from assignments.models import TaskDefinition
 from assignments.services import assignment_summary, create_default_lots
 
 from .forms import ClientLoginForm, ClientSignupForm
@@ -105,7 +105,7 @@ def dashboard(request):
 
 @login_required(login_url="accounts:login")
 def demo_dashboard(request):
-    context = _dashboard_context(request, AssignmentLot.AssignmentType.DEMO)
+    context = _dashboard_context(request, TaskDefinition.AssignmentType.DEMO)
     context["client_access_available"] = request.user.client_is_active
     return render(request, "client/demo_dashboard.html", context)
 
@@ -113,9 +113,9 @@ def demo_dashboard(request):
 @login_required(login_url="accounts:login")
 def client_dashboard(request):
     if not request.user.client_is_active:
-        return render(request, "client/client_access_pending.html", _dashboard_context(request, AssignmentLot.AssignmentType.DEMO), status=403)
+        return render(request, "client/client_access_pending.html", _dashboard_context(request, TaskDefinition.AssignmentType.DEMO), status=403)
 
-    context = _dashboard_context(request, AssignmentLot.AssignmentType.CLIENT)
+    context = _dashboard_context(request, TaskDefinition.AssignmentType.CLIENT)
     context.update(
         {
             "carried_demo_earnings": request.user.carried_demo_earnings,

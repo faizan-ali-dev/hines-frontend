@@ -25,16 +25,17 @@ Open `http://127.0.0.1:8000/` to use the public site and browser pages built wit
 
 - `/sign-up/` creates an employee account.
 - `/client-login/` signs in with the registration email and password.
-- `/dashboard/demo/` displays the 15-lot Demo Assignment.
-- `/dashboard/client/` displays the 35-lot Client Assignment after staff activation.
+- `/dashboard/demo/` displays the shared Demo Assignment.
+- `/dashboard/client/` displays the shared Client Assignment after staff activation.
 - `/admin/` opens the staff control panel.
 
 ### Assignment rules
 
-- Every signup receives 15 Demo lots and 35 Client lots.
+- Referral code is optional at sign-up.
+- Every Demo task in the shared catalogue is assigned automatically to every Demo user. Every Client task is assigned automatically to every Client user.
 - Staff set the completed lot count in the customized Django admin employee table. The backend marks only the first matching lots complete and recalculates earnings from the stored per-lot amounts.
 - Staff can change an employee's assignment stage between Demo and Client directly from the employee table. The first Client activation carries the employee's current Demo earnings once into Client totals.
-- Detailed task configuration is available in Django admin. Staff can create, edit, or delete Demo and Client tasks for an employee, including the lot number, task name, description, value, earning, link, and completion status. The browser never controls completion or financial calculations.
+- Detailed task configuration is available in Django admin under **Task definitions**. Staff create, edit, or delete shared Demo and Client tasks, including the lot number, task name, description, value, earning, and link. **Assignment lots** lets staff set completion status for each employee without changing the shared task.
 - Pending tasks display `$0.00` in the employee earning column. The stored earning appears only after staff mark that task complete.
 
 For production, set `DJANGO_DEBUG=false`, `DJANGO_SECRET_KEY` to a long private value, and `DJANGO_ALLOWED_HOSTS` to the deployed hostname. The application uses Django sessions, CSRF protection, secure production cookies, and login-attempt throttling.

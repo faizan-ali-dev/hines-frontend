@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 
-from assignments.models import AssignmentLot
+from assignments.models import TaskDefinition
 from assignments.services import (
     activate_client_account,
     assignment_summary,
@@ -104,16 +104,16 @@ class ClientUserAdmin(UserAdmin):
 
     @admin.display(description="Demo earnings")
     def demo_earnings(self, obj):
-        return f"${self._summary(obj, AssignmentLot.AssignmentType.DEMO)['current_earnings']:.2f}"
+        return f"${self._summary(obj, TaskDefinition.AssignmentType.DEMO)['current_earnings']:.2f}"
 
     @admin.display(description="Client earnings")
     def client_earnings(self, obj):
-        return f"${self._summary(obj, AssignmentLot.AssignmentType.CLIENT)['current_earnings']:.2f}"
+        return f"${self._summary(obj, TaskDefinition.AssignmentType.CLIENT)['current_earnings']:.2f}"
 
     @admin.display(description="Total earnings")
     def total_earnings(self, obj):
-        demo = self._summary(obj, AssignmentLot.AssignmentType.DEMO)["current_earnings"]
-        client = self._summary(obj, AssignmentLot.AssignmentType.CLIENT)["current_earnings"]
+        demo = self._summary(obj, TaskDefinition.AssignmentType.DEMO)["current_earnings"]
+        client = self._summary(obj, TaskDefinition.AssignmentType.CLIENT)["current_earnings"]
         carried = obj.carried_demo_earnings if obj.client_is_active else demo
         return f"${carried + client:.2f}"
 
@@ -125,10 +125,12 @@ class ClientUserAdmin(UserAdmin):
         if not change:
             create_default_lots(obj)
             return
+        if previous["assignment_status"] != obj.assignment_status:
+            set_assignment_status(obj, obj.assignment_status, changed_by=request.user)
         if previous["demo_progress"] != obj.demo_progress:
             set_progress(
                 obj,
-                AssignmentLot.AssignmentType.DEMO,
+                TaskDefinition.AssignmentType.DEMO,
                 obj.demo_progress,
                 changed_by=request.user,
                 previous_progress=previous["demo_progress"],
@@ -136,13 +138,11 @@ class ClientUserAdmin(UserAdmin):
         if previous["client_progress"] != obj.client_progress:
             set_progress(
                 obj,
-                AssignmentLot.AssignmentType.CLIENT,
+                TaskDefinition.AssignmentType.CLIENT,
                 obj.client_progress,
                 changed_by=request.user,
                 previous_progress=previous["client_progress"],
             )
-        if previous["assignment_status"] != obj.assignment_status:
-            set_assignment_status(obj, obj.assignment_status, changed_by=request.user)
 
     @admin.action(description="Activate selected client accounts")
     def activate_client_accounts(self, request, queryset):

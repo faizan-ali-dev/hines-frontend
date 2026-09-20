@@ -16,7 +16,7 @@
       {% if form.non_field_errors %}<div class="portal-errors">{{ form.non_field_errors }}</div>{% endif %}
       <label class="portal-field" for="{{ form.full_name.id_for_label }}"><span>Full name</span>{{ form.full_name }}{{ form.full_name.errors }}</label>
       <label class="portal-field" for="{{ form.email.id_for_label }}"><span>Email</span>{{ form.email }}{{ form.email.errors }}</label>
-      <label class="portal-field" for="{{ form.referral_code.id_for_label }}"><span>Referral code</span>{{ form.referral_code }}{{ form.referral_code.errors }}</label>
+      <label class="portal-field" for="{{ form.referral_code.id_for_label }}"><span>Referral code (optional)</span>{{ form.referral_code }}{{ form.referral_code.errors }}</label>
       <label class="portal-field" for="{{ form.password.id_for_label }}"><span>Password</span>{{ form.password }}{{ form.password.errors }}</label>
       <button class="portal-primary-button" type="submit">Create account</button>
     </form>

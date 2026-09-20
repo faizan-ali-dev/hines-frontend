@@ -8,7 +8,7 @@ from .models import ClientUser
 class ClientSignupForm(forms.Form):
     full_name = forms.CharField(max_length=300)
     email = forms.EmailField()
-    referral_code = forms.CharField(max_length=100)
+    referral_code = forms.CharField(max_length=100, required=False)
     password = forms.CharField(min_length=8, widget=forms.PasswordInput)
 
     def clean_email(self):

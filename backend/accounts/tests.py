@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from assignments.models import AssignmentLot
+from assignments.models import AssignmentLot, TaskDefinition
 from assignments.services import activate_client_account, set_progress
 
 from .models import ClientUser
@@ -20,7 +20,7 @@ class ClientPageTests(TestCase):
 
         self.assertRedirects(response, reverse("accounts:demo-dashboard"))
         self.assertEqual(ClientUser.objects.count(), 1)
-        self.assertEqual(AssignmentLot.objects.filter(employee__email="faizan@example.com").count(), 50)
+        self.assertEqual(AssignmentLot.objects.filter(employee__email="faizan@example.com").count(), 15)
         dashboard_response = self.client.get(reverse("accounts:demo-dashboard"))
         self.assertContains(dashboard_response, "Demo Assignment")
         self.assertContains(dashboard_response, "#001")
@@ -31,8 +31,12 @@ class ClientPageTests(TestCase):
         employee = ClientUser.objects.get(email="faizan@example.com")
         self.assertEqual(self.client.get(reverse("accounts:client-dashboard")).status_code, 403)
 
-        set_progress(employee, AssignmentLot.AssignmentType.DEMO, 15)
+        set_progress(employee, TaskDefinition.AssignmentType.DEMO, 15)
         activate_client_account(employee)
+        self.assertEqual(
+            AssignmentLot.objects.filter(employee=employee, assignment_type=TaskDefinition.AssignmentType.CLIENT).count(),
+            35,
+        )
 
         response = self.client.get(reverse("accounts:client-dashboard"))
         self.assertEqual(response.status_code, 200)
@@ -60,6 +64,13 @@ class ClientPageTests(TestCase):
 
         response = self.client.post(reverse("accounts:signup"), self.signup_payload)
         self.assertContains(response, "An account with this email already exists.")
+
+    def test_signup_accepts_a_blank_referral_code(self):
+        payload = {key: value for key, value in self.signup_payload.items() if key != "referral_code"}
+        payload["email"] = "no-referral@example.com"
+        response = self.client.post(reverse("accounts:signup"), payload)
+        self.assertRedirects(response, reverse("accounts:demo-dashboard"))
+        self.assertEqual(ClientUser.objects.get(email=payload["email"]).referral_code, "")
 
     def test_public_frontend_pages_use_the_server_auth_routes(self):
         home = self.client.get("/")
