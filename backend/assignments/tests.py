@@ -10,7 +10,9 @@ from .services import (
     activate_client_account,
     assignment_summary,
     create_default_lots,
+    set_assignment_status,
     set_progress,
+    sync_progress_from_lots,
 )
 
 
@@ -55,7 +57,7 @@ class AssignmentServiceTests(TestCase):
         self.assertEqual(ProgressChange.objects.count(), 2)
 
     def test_client_activation_carries_demo_earnings_once(self):
-        with self.assertRaisesMessage(ValueError, "Demo progress must be 15"):
+        with self.assertRaisesMessage(ValueError, "All Demo lots must be completed"):
             activate_client_account(self.employee)
 
         set_progress(self.employee, AssignmentLot.AssignmentType.DEMO, 15)
@@ -66,5 +68,29 @@ class AssignmentServiceTests(TestCase):
         set_progress(self.employee, AssignmentLot.AssignmentType.DEMO, 14)
         activated_again = activate_client_account(self.employee)
         self.assertEqual(activated_again.carried_demo_earnings, Decimal("65.00"))
+
+    def test_staff_can_add_a_custom_task_and_mark_it_complete(self):
+        task = AssignmentLot.objects.create(
+            employee=self.employee,
+            assignment_type=AssignmentLot.AssignmentType.DEMO,
+            lot_number=16,
+            task_name="Custom Property Review",
+            task_description="A task created by an administrator.",
+            task_value=Decimal("900.00"),
+            employee_earning=Decimal("90.00"),
+            task_link="https://example.com/task",
+            is_completed=True,
+        )
+        sync_progress_from_lots(self.employee, AssignmentLot.AssignmentType.DEMO)
+
+        summary = assignment_summary(self.employee, AssignmentLot.AssignmentType.DEMO)
+        self.assertEqual(summary["total_lots"], 16)
+        self.assertEqual(summary["completed"], 1)
+        self.assertEqual(summary["current_earnings"], Decimal("90.00"))
+        self.assertEqual(task.task_link, "https://example.com/task")
+
+        moved = set_assignment_status(self.employee, "client")
+        self.assertTrue(moved.client_is_active)
+        self.assertEqual(moved.carried_demo_earnings, Decimal("90.00"))
 
 # Create your tests here.

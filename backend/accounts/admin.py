@@ -6,6 +6,7 @@ from assignments.services import (
     activate_client_account,
     assignment_summary,
     create_default_lots,
+    set_assignment_status,
     set_progress,
 )
 from .models import ClientUser
@@ -31,13 +32,13 @@ class AssignmentStatusFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         value = self.value()
         if value == "demo-active":
-            return queryset.filter(demo_progress__lt=15)
+            return queryset.filter(assignment_status=ClientUser.AssignmentStatus.DEMO)
         if value == "demo-completed":
-            return queryset.filter(demo_progress=15)
+            return queryset.filter(client_activated_at__isnull=False)
         if value == "client-active":
-            return queryset.filter(client_activated_at__isnull=False, client_progress__lt=35)
+            return queryset.filter(assignment_status=ClientUser.AssignmentStatus.CLIENT)
         if value == "assignment-completed":
-            return queryset.filter(client_activated_at__isnull=False, client_progress=35)
+            return queryset.filter(assignment_status=ClientUser.AssignmentStatus.CLIENT, client_progress__gt=0)
         return queryset
 
 
@@ -49,7 +50,7 @@ class ClientUserAdmin(UserAdmin):
             "Assignment control",
             {
                 "fields": (
-                    ("demo_progress", "client_progress"),
+                    ("assignment_status", "demo_progress", "client_progress"),
                     "client_activated_at",
                     "carried_demo_earnings",
                     ("demo_earnings", "client_earnings", "total_earnings"),
@@ -73,6 +74,7 @@ class ClientUserAdmin(UserAdmin):
         "employee_name",
         "email",
         "referral_code",
+        "assignment_status",
         "demo_progress",
         "client_progress",
         "demo_earnings",
@@ -80,7 +82,7 @@ class ClientUserAdmin(UserAdmin):
         "total_earnings",
     )
     list_display_links = ("employee_name",)
-    list_editable = ("referral_code", "demo_progress", "client_progress")
+    list_editable = ("referral_code", "assignment_status", "demo_progress", "client_progress")
     list_filter = (AssignmentStatusFilter, "is_active", "is_staff")
     search_fields = ("first_name", "last_name", "email", "referral_code")
     ordering = ("first_name", "last_name", "email")
@@ -118,7 +120,7 @@ class ClientUserAdmin(UserAdmin):
     def save_model(self, request, obj, form, change):
         previous = None
         if change:
-            previous = ClientUser.objects.filter(pk=obj.pk).values("demo_progress", "client_progress").first()
+            previous = ClientUser.objects.filter(pk=obj.pk).values("demo_progress", "client_progress", "assignment_status").first()
         super().save_model(request, obj, form, change)
         if not change:
             create_default_lots(obj)
@@ -139,6 +141,8 @@ class ClientUserAdmin(UserAdmin):
                 changed_by=request.user,
                 previous_progress=previous["client_progress"],
             )
+        if previous["assignment_status"] != obj.assignment_status:
+            set_assignment_status(obj, obj.assignment_status, changed_by=request.user)
 
     @admin.action(description="Activate selected client accounts")
     def activate_client_accounts(self, request, queryset):
@@ -146,7 +150,7 @@ class ClientUserAdmin(UserAdmin):
         unavailable = 0
         for employee in queryset:
             try:
-                activate_client_account(employee, changed_by=request.user)
+                activate_client_account(employee, changed_by=request.user, require_completed=False)
                 activated += 1
             except ValueError:
                 unavailable += 1
@@ -155,7 +159,7 @@ class ClientUserAdmin(UserAdmin):
         if unavailable:
             self.message_user(
                 request,
-                f"{unavailable} account(s) still need 15 completed demo lots before activation.",
+                f"{unavailable} account(s) could not be activated.",
                 messages.WARNING,
             )
 

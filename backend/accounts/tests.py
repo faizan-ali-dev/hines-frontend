@@ -24,6 +24,7 @@ class ClientPageTests(TestCase):
         dashboard_response = self.client.get(reverse("accounts:demo-dashboard"))
         self.assertContains(dashboard_response, "Demo Assignment")
         self.assertContains(dashboard_response, "#001")
+        self.assertContains(dashboard_response, "$0.00")
 
     def test_client_dashboard_stays_locked_until_staff_activation(self):
         self.client.post(reverse("accounts:signup"), self.signup_payload)
