@@ -127,7 +127,7 @@ def client_dashboard(request):
 
 
 def public_frontend(request, frontend_path=""):
-    """Serves the captured public HTML only after application routes are resolved."""
+    """Serves the public frontend using Django templates."""
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET"])
 
@@ -142,8 +142,11 @@ def public_frontend(request, frontend_path=""):
     if requested_path.endswith("/"):
         requested_path = f"{requested_path}index.html"
 
-    root = settings.PUBLIC_FRONTEND_DIR.resolve()
+    # We now serve templates from backend/templates/public/
+    # If the file exists in that directory, we render it.
+    root = settings.BASE_DIR / "templates" / "public"
     candidate = (root / requested_path).resolve()
+    
     if root not in candidate.parents and candidate != root:
         raise Http404("Page not found.")
     if not candidate.is_file():
@@ -152,23 +155,12 @@ def public_frontend(request, frontend_path=""):
     content_type, _ = mimetypes.guess_type(candidate.name)
     
     if candidate.name.endswith(".html"):
-        from django.http import HttpResponse
-        import re
         from .models import SiteSetting
-        
-        content = candidate.read_text(encoding="utf-8")
-        settings = SiteSetting.objects.first()
-        if settings:
-            if settings.facebook_url:
-                content = re.sub(r'href="https://(?:www\.)?facebook\.com/[^"]+"', f'href="{settings.facebook_url}"', content, flags=re.IGNORECASE)
-            if settings.linkedin_url:
-                content = re.sub(r'href="https://(?:www\.)?linkedin\.com/[^"]+"', f'href="{settings.linkedin_url}"', content, flags=re.IGNORECASE)
-            if settings.twitter_url:
-                content = re.sub(r'href="https://(?:www\.)?twitter\.com/[^"]+"', f'href="{settings.twitter_url}"', content, flags=re.IGNORECASE)
-            if settings.instagram_url:
-                content = re.sub(r'href="https://(?:www\.)?instagram\.com/[^"]+"', f'href="{settings.instagram_url}"', content, flags=re.IGNORECASE)
-            if settings.youtube_url:
-                content = re.sub(r'href="https://(?:www\.)?youtube\.com/[^"]+"', f'href="{settings.youtube_url}"', content, flags=re.IGNORECASE)
-        return HttpResponse(content, content_type=content_type)
+        return render(
+            request, 
+            f"public/{requested_path}", 
+            {"site_settings": SiteSetting.objects.first()}
+        )
 
+    # Fallback for non-HTML files that somehow slipped through (though they should be in static)
     return FileResponse(candidate.open("rb"), content_type=content_type)
