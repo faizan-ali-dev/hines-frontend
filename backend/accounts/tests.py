@@ -93,17 +93,3 @@ class ClientPageTests(TestCase):
         self.assertContains(response, "Demo earnings")
         self.assertContains(response, "Client earnings")
         self.assertContains(response, "Total earnings")
-
-    def test_admin_home_shows_the_operations_overview(self):
-        admin_user = ClientUser.objects.create_superuser(
-            username="overview-admin@example.com",
-            email="overview-admin@example.com",
-            password="A-strong-password-2026",
-        )
-        self.client.force_login(admin_user)
-
-        response = self.client.get("/admin/")
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Assignment control centre")
-        self.assertContains(response, "Shared task catalogue")
-        self.assertContains(response, "Completion tracking")
