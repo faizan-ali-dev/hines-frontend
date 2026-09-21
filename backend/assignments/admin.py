@@ -56,6 +56,7 @@ class AssignmentLotAdmin(admin.ModelAdmin):
     """Staff manage each employee's completion status here."""
 
     list_display = ("employee", "assignment_type", "lot_number", "task_name", "task_value", "employee_earning", "task_link", "is_completed")
+    list_editable = ("is_completed",)
     list_filter = ("assignment_type", "is_completed")
     search_fields = ("employee__email", "employee__first_name", "employee__last_name", "task_name")
     ordering = ("employee__email", "assignment_type", "lot_number")

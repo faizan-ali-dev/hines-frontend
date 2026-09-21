@@ -23,7 +23,7 @@ jobs:
       - name: Prepare published site
         run: |
           mkdir -p _site
-          cp -R frontend _site/frontend
+          cp -R frontend/* _site/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

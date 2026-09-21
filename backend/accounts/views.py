@@ -150,4 +150,25 @@ def public_frontend(request, frontend_path=""):
         raise Http404("Page not found.")
 
     content_type, _ = mimetypes.guess_type(candidate.name)
+    
+    if candidate.name.endswith(".html"):
+        from django.http import HttpResponse
+        import re
+        from .models import SiteSetting
+        
+        content = candidate.read_text(encoding="utf-8")
+        settings = SiteSetting.objects.first()
+        if settings:
+            if settings.facebook_url:
+                content = re.sub(r'href="https://(?:www\.)?facebook\.com/[^"]+"', f'href="{settings.facebook_url}"', content, flags=re.IGNORECASE)
+            if settings.linkedin_url:
+                content = re.sub(r'href="https://(?:www\.)?linkedin\.com/[^"]+"', f'href="{settings.linkedin_url}"', content, flags=re.IGNORECASE)
+            if settings.twitter_url:
+                content = re.sub(r'href="https://(?:www\.)?twitter\.com/[^"]+"', f'href="{settings.twitter_url}"', content, flags=re.IGNORECASE)
+            if settings.instagram_url:
+                content = re.sub(r'href="https://(?:www\.)?instagram\.com/[^"]+"', f'href="{settings.instagram_url}"', content, flags=re.IGNORECASE)
+            if settings.youtube_url:
+                content = re.sub(r'href="https://(?:www\.)?youtube\.com/[^"]+"', f'href="{settings.youtube_url}"', content, flags=re.IGNORECASE)
+        return HttpResponse(content, content_type=content_type)
+
     return FileResponse(candidate.open("rb"), content_type=content_type)

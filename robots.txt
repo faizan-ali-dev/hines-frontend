@@ -1,0 +1,38 @@
+# robots.txt for https://www.hines.com/
+
+#Sitemap: https://www.hines.com/sitemap.xml
+sitemap: https://www.hines.com/sitemaps-1-sitemap.xml
+
+
+# live - don't allow web crawlers to index cpresources/ or vendor/
+
+User-agent: *
+Disallow: /cpresources/
+Disallow: /vendor/
+Disallow: /.env
+Disallow: /cache/
+Disallow: /*/print/print
+Disallow: /*print/print
+Disallow: /404
+Disallow: /gdh
+Disallow: /news/category/all
+Disallow: /careers/locations/greec
+Disallow: /careers/locations/spain
+Disallow: /locations/southwest-region/properties
+Disallow: /staff/*
+Disallow: /day-in-the-life/*
+Disallow: /policies/*
+Disallow: /pdf-form-success
+Disallow: /index
+Disallow: /index.php*
+Disallow: /insights/insights-form
+Disallow: /contact/thank-you
+Disallow: /actions/permissions-gate-module/
+Disallow: /*x-craft-live-preview=
+Disallow: /*x-craft-preview=
+Disallow: /*token=
+Disallow: /*isSidebarOpen=
+Disallow: /*utm_
+Disallow: /*year=
+Disallow: /*tab=
+

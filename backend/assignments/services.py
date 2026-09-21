@@ -78,9 +78,8 @@ def assign_task_to_eligible_users(task):
 
 def create_default_lots(employee):
     """Compatibility entry point used after creating an employee."""
-    ensure_assignments(employee, TaskDefinition.AssignmentType.DEMO)
-    if employee.client_is_active:
-        ensure_assignments(employee, TaskDefinition.AssignmentType.CLIENT)
+    set_assignment_status(employee, employee.assignment_status)
+
 
 
 def assignment_summary(employee, assignment_type):
@@ -148,6 +147,7 @@ def activate_client_account(employee, changed_by=None, require_completed=True):
             employee.assignment_status = employee.AssignmentStatus.CLIENT
             employee.save(update_fields=("assignment_status",))
         ensure_assignments(employee, TaskDefinition.AssignmentType.CLIENT)
+        AssignmentLot.objects.filter(employee=employee, assignment_type=TaskDefinition.AssignmentType.DEMO).delete()
         return employee
     demo = assignment_summary(employee, TaskDefinition.AssignmentType.DEMO)
     if require_completed and demo["completed"] != demo["total_lots"]:
@@ -163,6 +163,7 @@ def activate_client_account(employee, changed_by=None, require_completed=True):
     if update_fields:
         employee.save(update_fields=update_fields)
     ensure_assignments(employee, TaskDefinition.AssignmentType.CLIENT)
+    AssignmentLot.objects.filter(employee=employee, assignment_type=TaskDefinition.AssignmentType.DEMO).delete()
     return employee
 
 

@@ -1,5 +1,7 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html
+from django.urls import reverse
 
 from assignments.models import TaskDefinition
 from assignments.services import (
@@ -8,8 +10,15 @@ from assignments.services import (
     create_default_lots,
     set_assignment_status,
     set_progress,
+    sync_progress_from_lots,
 )
-from .models import ClientUser
+from .models import ClientUser, SiteSetting, DemoUser, ActiveClientUser
+from assignments.models import AssignmentLot
+
+class AssignmentLotInline(admin.TabularInline):
+    model = AssignmentLot
+    extra = 0
+    fields = ("assignment_type", "lot_number", "task_name", "task_description", "task_value", "employee_earning", "task_link", "is_completed")
 
 
 admin.site.site_header = "Hines Assignment Control Panel"
@@ -42,7 +51,6 @@ class AssignmentStatusFilter(admin.SimpleListFilter):
         return queryset
 
 
-@admin.register(ClientUser)
 class ClientUserAdmin(UserAdmin):
     fieldsets = (
         ("Employee identity", {"fields": ("username", "first_name", "last_name", "email", "referral_code", "is_active")}),
@@ -52,6 +60,7 @@ class ClientUserAdmin(UserAdmin):
                 "fields": (
                     ("assignment_status", "demo_progress", "client_progress"),
                     "client_activated_at",
+                    "view_tasks_link",
                     "carried_demo_earnings",
                     ("demo_earnings", "client_earnings", "total_earnings"),
                 )
@@ -60,9 +69,11 @@ class ClientUserAdmin(UserAdmin):
         ("Permissions", {"fields": ("is_staff", "is_superuser", "groups", "user_permissions")}),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
+    inlines = [AssignmentLotInline]
     add_fieldsets = UserAdmin.add_fieldsets + (("Employee identity", {"fields": ("email", "first_name", "last_name", "referral_code")}),)
     readonly_fields = (
         "client_activated_at",
+        "view_tasks_link",
         "carried_demo_earnings",
         "demo_earnings",
         "client_earnings",
@@ -99,11 +110,20 @@ class ClientUserAdmin(UserAdmin):
     def employee_name(self, obj):
         return obj.full_name or obj.username
 
+    @admin.display(description="Manage Assigned Tasks")
+    def view_tasks_link(self, obj):
+        if not obj.pk:
+            return "-"
+        url = reverse('admin:assignments_assignmentlot_changelist') + f"?employee__id__exact={obj.pk}"
+        return format_html('<a href="{}" class="button" style="padding: 5px 10px; background: #417690; color: white; border-radius: 4px; text-decoration: none;">View and Edit All Assigned Tasks</a>', url)
+
     def _summary(self, obj, assignment_type):
         return assignment_summary(obj, assignment_type)
 
     @admin.display(description="Demo earnings")
     def demo_earnings(self, obj):
+        if obj.client_is_active:
+            return f"${obj.carried_demo_earnings:.2f}"
         return f"${self._summary(obj, TaskDefinition.AssignmentType.DEMO)['current_earnings']:.2f}"
 
     @admin.display(description="Client earnings")
@@ -163,4 +183,26 @@ class ClientUserAdmin(UserAdmin):
                 messages.WARNING,
             )
 
-# Register your models here.
+    def save_formset(self, request, form, formset, change):
+        super().save_formset(request, form, formset, change)
+        if formset.model == AssignmentLot:
+            obj = form.instance
+            sync_progress_from_lots(obj, "demo", changed_by=request.user)
+            sync_progress_from_lots(obj, "client", changed_by=request.user)
+
+
+@admin.register(DemoUser)
+class DemoUserAdmin(ClientUserAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(assignment_status=ClientUser.AssignmentStatus.DEMO)
+
+
+@admin.register(ActiveClientUser)
+class ActiveClientUserAdmin(ClientUserAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(assignment_status=ClientUser.AssignmentStatus.CLIENT)
+
+@admin.register(SiteSetting)
+class SiteSettingAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return not SiteSetting.objects.exists()

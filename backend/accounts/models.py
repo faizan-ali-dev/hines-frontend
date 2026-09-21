@@ -25,4 +25,30 @@ class ClientUser(AbstractUser):
     def client_is_active(self):
         return self.assignment_status == self.AssignmentStatus.CLIENT
 
-# Create your models here.
+
+class DemoUser(ClientUser):
+    class Meta:
+        proxy = True
+        verbose_name = "Demo User"
+        verbose_name_plural = "Demo Users"
+
+
+class ActiveClientUser(ClientUser):
+    class Meta:
+        proxy = True
+        verbose_name = "Client User"
+        verbose_name_plural = "Client Users"
+
+class SiteSetting(models.Model):
+    facebook_url = models.URLField(blank=True, default="")
+    twitter_url = models.URLField(blank=True, default="")
+    linkedin_url = models.URLField(blank=True, default="")
+    instagram_url = models.URLField(blank=True, default="")
+    youtube_url = models.URLField(blank=True, default="")
+    
+    class Meta:
+        verbose_name = "Site Setting"
+        verbose_name_plural = "Site Settings"
+
+    def __str__(self):
+        return "Site Settings"
